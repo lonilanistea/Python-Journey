@@ -1,0 +1,74 @@
+from IPython.display import Image as IPythonImage
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
+
+from lxml import html
+import requests
+
+#request random wiki page 1
+data_top = ('band_name.txt')
+page_top = requests.get('https://en.wikipedia.org/wiki/Special:Random')
+with open('band_name.txt','wb') as band_name_raw:
+    band_name_raw.write(page_top.content)
+
+# using xpath to get specific info from html file then remove the unwanted portion of info
+tree = html.fromstring(page_top.content) 
+band_title = tree.xpath('//title/text()')
+band_title
+band_title = [w.replace('- Wikipedia', '') for w in band_title]
+band_title
+
+#request random wiki page 2
+data_bot = ('album_title.txt')
+page_bot = requests.get('https://en.wikipedia.org/wiki/Special:Random')
+with open('album_title.txt','wb') as album_name_raw:
+    album_name_raw.write(page_bot.content)
+
+tree = html.fromstring(page_bot.content)
+album_title = tree.xpath('//title/text()')
+album_title
+album_title = [w.replace('- Wikipedia', '') for w in album_title]
+album_title
+
+#turn list into string
+topp = str(band_title)
+bottomm = str(album_title)
+
+#request random picture
+def display_cover(top,bottom ):
+
+    pic = 'pic_raw.png'
+    alb_art_raw = requests.get('https://picsum.photos/500/500/?random')
+ 
+    with open(pic,'wb') as pic_art_raw_file:
+       pic_art_raw_file.write(alb_art_raw.content)
+   
+    imgg = Image.open("pic_raw.png")
+    draw = ImageDraw.Draw(imgg)
+
+    band_name_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 25) 
+    album_name_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20) 
+
+    band_x, band_y = 50, 50
+    album_x, album_y = 50, 400
+
+    outline_color ="black"
+
+    draw.text((band_x-1, band_y-1), top, font=band_name_font, fill=outline_color)
+    draw.text((band_x+1, band_y-1), top, font=band_name_font, fill=outline_color)
+    draw.text((band_x-1, band_y+1), top, font=band_name_font, fill=outline_color)
+    draw.text((band_x+1, band_y+1), top, font=band_name_font, fill=outline_color)
+
+    draw.text((album_x-1, album_y-1), bottom , font=album_name_font, fill=outline_color)
+    draw.text((album_x+1, album_y-1), bottom , font=album_name_font, fill=outline_color)
+    draw.text((album_x-1, album_y+1), bottom , font=album_name_font, fill=outline_color)
+    draw.text((album_x+1, album_y+1), bottom , font=album_name_font, fill=outline_color)
+
+    draw.text((band_x,band_y),top,(255,255,255),font=band_name_font)
+    draw.text((album_x, album_y),bottom,(255,255,255),font=album_name_font)
+
+    return imgg
+imgg = display_cover(top= topp,bottom= bottomm) 
+imgg.save('JQ_sample.png') 
+IPythonImage(filename='JQ_sample.png')
